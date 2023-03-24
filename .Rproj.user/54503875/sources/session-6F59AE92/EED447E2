@@ -3,7 +3,7 @@
     "path": "~/Documents/GitHub/sarahfishproject/nov_detection_setup.R",
     "project_path": "nov_detection_setup.R",
     "type": "r_source",
-    "hash": "2946950696",
+    "hash": "1306661859",
     "contents": "",
     "dirty": false,
     "created": 1679616942049.0,
@@ -13,15 +13,15 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "125,0",
-        "scrollLine": "0"
+        "cursorPosition": "156,43",
+        "scrollLine": "134"
     },
-    "folds": "4|55|31|0|\n32|28|42|0|\n43|26|53|0|\n54|30|117|0|\n57|61|104|0|\n118|41|124|0|\n",
-    "lastKnownWriteTime": 1679617729,
+    "folds": "4|55|31|0|\n32|28|42|0|\n43|26|53|0|\n54|30|117|0|\n57|61|104|0|\n118|41|124|0|\n125|7|129|0|\n130|43|156|43|\n",
+    "lastKnownWriteTime": 1679619479,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1679617729118,
+    "last_content_update": 1679619479324,
     "read_only": false,
     "read_only_alternatives": []
 }

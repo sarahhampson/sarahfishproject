@@ -123,3 +123,35 @@ survey_data <- standardise.species.names(survey_data)
 taxonomic_matrix_list <- seasonal.matrix.maker(survey_data, ts_data)
 
 
+# Note --------------------------------------------------------------------
+
+# Be sure to have taxonomic_matrix_list in your environment for both tax
+# and func novelty detection
+
+# 1.  Subset data for species in fishmorph --------------------------------
+
+# Create a list of species from the selected TS
+species_list <- survey_data %>% dplyr::summarise(Species = unique(Species))
+
+# Create list of species missing from fishmorph
+missing_species <- species_list %>%
+  filter(!Species %in% fishmorph_data$Species)
+
+# Identify TS which have these missing species
+survey_data_missing_sp <- survey_data %>%
+  filter(Species %in% missing_species$Species) %>% 
+  dplyr::summarise(sqID = unique(sqID))
+
+# Remove TS which do not have data from survey data
+survey_data <- survey_data %>% 
+  filter(!sqID %in% survey_data_missing_sp$sqID)
+
+# Remove sites which do not appear in the new survey data
+ts_data <- ts_data %>% 
+  filter(TimeSeriesID %in% survey_data$TimeSeriesID)
+
+# Make new species list
+species_list <- survey_data %>% dplyr::summarise(Species = unique(Species))
+
+# Cleanup
+rm(missing_species, survey_data_missing_sp)

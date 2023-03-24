@@ -1,0 +1,27 @@
+{
+    "id": "60BD5419",
+    "path": "~/Documents/GitHub/sarahfishproject/trait_data_setup.R",
+    "project_path": "trait_data_setup.R",
+    "type": "r_source",
+    "hash": "350130176",
+    "contents": "",
+    "dirty": false,
+    "created": 1679617756770.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "2,0",
+        "scrollLine": "0"
+    },
+    "folds": "4|23|12|0|\n13|20|63|0|\n64|31|84|0|\n85|43|97|0|\n98|34|115|0|\n",
+    "lastKnownWriteTime": 1679619480,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1679619480889,
+    "read_only": false,
+    "read_only_alternatives": []
+}
