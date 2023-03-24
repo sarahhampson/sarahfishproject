@@ -43,14 +43,12 @@ date.wrap <- function(string, ext){
 
 # 3.  Load fishmorph data -------------------------------------------------
 
-
 # FishMORPH data plus change species variable name
 fishmorph_data <- read.csv("inputs/FISHMORPH_Database.csv", sep = ";")
 fishmorph_data <- fishmorph_data %>% dplyr::rename("Species" = "Genus.species")
 
 # Align all species names across fishmorph with fishbase
 fishmorph_data <- standardise.species.names(fishmorph_data)
-
 
 # 4.  Select time series data ---------------------------------------------
 
@@ -123,12 +121,7 @@ survey_data <- standardise.species.names(survey_data)
 taxonomic_matrix_list <- seasonal.matrix.maker(survey_data, ts_data)
 
 
-# Note --------------------------------------------------------------------
-
-# Be sure to have taxonomic_matrix_list in your environment for both tax
-# and func novelty detection
-
-# 1.  Subset data for species in fishmorph --------------------------------
+# 6.  Subset data for species in fishmorph --------------------------------
 
 # Create a list of species from the selected TS
 species_list <- survey_data %>% dplyr::summarise(Species = unique(Species))
@@ -155,3 +148,17 @@ species_list <- survey_data %>% dplyr::summarise(Species = unique(Species))
 
 # Cleanup
 rm(missing_species, survey_data_missing_sp)
+
+
+# 7.  Save subset survey data and ts data ---------------------------------
+
+write.csv(survey_data, "./inputs/survey_data.csv")
+write.csv(ts_data, "./inputs/ts_data.csv")
+
+# Note --------------------------------------------------------------------
+
+# Be sure to have taxonomic_matrix_list in your environment for both tax
+# and func novelty detection
+
+
+

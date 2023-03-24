@@ -1,4 +1,14 @@
-# Title: Taxonomic Novelty Detection
+# Title: Tax and Func Novelty Detection
 # Author: Sarah Hampson
 
-# 
+
+# 1.  Taxonomic novelty detection -----------------------------------------
+
+# Apply framework using taxonomiv novelty detection function 
+# Note this removes the first 5 time bins, and also uses the old 
+# identify.novel.gam function
+
+tax_results_list <- tax.novelty.detection(taxonomic_matrix_list)
+
+# Empty plots folder if wanted
+unlink("./plots/taxonomic Plots/*")

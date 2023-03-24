@@ -2,6 +2,14 @@
 # Author: Sarah Hampson
 
 
+# 1.  Identify species ----------------------------------------------------
+
+# Import survey_data if not already in environment
+survey_data<- read.csv("./inputs/survey_data.csv")
+
+# Make list of unique species
+species_list <- survey_data %>% dplyr::summarise(Species = unique(Species))
+
 # 2.  Fishmorph traits ----------------------------------------------------
 
 # Make a list of traits that we are interested in from fishmorph
@@ -9,7 +17,6 @@ traitlist_FM <- as.list(c("MBl", "BEl", "VEp", "REs", "OGp", "RMl", "BLs", "PFv"
 
 # Use fishmorph_trait_finder to select all data from fishmorph
 trait_data_FM <- fishmorph_trait_finder(traitlist_FM, fishmorph_data, species_list)
-
 
 # 3.  Trophic level -------------------------------------------------------
 
