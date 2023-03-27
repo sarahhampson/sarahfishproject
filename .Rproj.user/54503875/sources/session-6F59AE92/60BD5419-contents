@@ -4,8 +4,9 @@
 
 # 1.  Identify species ----------------------------------------------------
 
-# Import survey_data if not already in environment
-survey_data<- read.csv("./inputs/survey_data.csv")
+# Import survey_data and fishmorph data if not already in environment
+survey_data <- read.csv("./inputs/data/survey_data.csv")
+fishmorph_data <- read.csv("./inputs/data/fishmorph_data.csv")
 
 # Make list of unique species
 species_list <- survey_data %>% dplyr::summarise(Species = unique(Species))
@@ -16,16 +17,16 @@ species_list <- survey_data %>% dplyr::summarise(Species = unique(Species))
 traitlist_FM <- as.list(c("MBl", "BEl", "VEp", "REs", "OGp", "RMl", "BLs", "PFv", "PFs", "CPt"))
 
 # Use fishmorph_trait_finder to select all data from fishmorph
-trait_data_FM <- fishmorph_trait_finder(traitlist_FM, fishmorph_data, species_list)
+trait_data_FM <- fishmorph.trait.finder(traitlist_FM, fishmorph_data, species_list)
 
 # 3.  Trophic level -------------------------------------------------------
 
 # Retrieve trophic level data from rfishbase
-trophic_data_FB <- ecology(species_list_v2$Species, 
+trophic_data_FB <- ecology(species_list$Species, 
                            fields = c("Species", "FoodTroph", "DietTroph"))
 
 # Make list of species missing from troph data
-missing_troph_sp <- species_list_v2 %>% 
+missing_troph_sp <- species_list %>% 
   filter(!Species %in% trophic_data_FB$Species)
 
 # Show more missing species from above troph list and filter from df
@@ -65,11 +66,31 @@ troph_data_food <- trophic_data_FB %>%
 # Combine the data into one trophic df
 troph_data <- rbind(troph_Est_data, troph_data_diet, troph_data_food)
 
-# Cleanup
-rm(troph_data_diet, troph_data_food, troph_Est_data, trophic_data_FB,
-   missing_troph_sp, missing_troph_sp2)
+# 4.  Make full trait dataframe -------------------------------------------
 
-# 4.  Testing for collinearity --------------------------------------------
+# Put all trait data together and remove unnecessary columns
+full_trait_data <- left_join(trait_data_FM, troph_data, by="Species")
+full_trait_data <- full_trait_data %>% dplyr::select(-troph_cat)
+full_trait_data$troph_level <- as.numeric(full_trait_data$troph_level)
+
+# 5.  Add missing MBl -----------------------------------------------------
+
+# Determine  NA trait gaps (7 species)
+NA_trait_species <- full_trait_data %>%
+  filter(is.na(MBl))
+
+# Sub in found values for missing trait data
+full_trait_data <- full_trait_data %>% 
+  mutate(MBl = ifelse(Species == "Hypophthalmus oremaculatus", 44,
+                ifelse(Species == "Moxostoma collapsum", 45,
+                 ifelse(Species == "Percina nevisense", 77.7,
+                  ifelse(Species == "Pterygoplichthys ambrosettii", 50, MBl)))))
+
+# Check NA species again and then remove unecessary df
+NA_trait_species <- full_trait_data %>%
+  filter(is.na(MBl))
+
+# 6.  Collinearity and coverage -------------------------------------------
 
 # Checking to see whether co-linearity exists between traits
 # Using VIF (variance inflation factor)
@@ -86,11 +107,18 @@ vif(colin.model)
 summary(colin.model)
 plot(colin.model)
 
-# Cleanup
-rm(colin.model)
+# Summarise data by proportion of species covered for all traits
 
+# Define a function to calculate proportion of NA values
+prop_table <- sapply(full_trait_data[2:ncol(full_trait_data)], function(x) {
+  prop.table(table(is.na(x)))
+})
+prop_table <- do.call("rbind", prop_table)
 
-# 6.  Make functional dissimilarity matrix --------------------------------
+# Print the table
+prop_table
+
+# 7.  Make functional dissimilarity matrix --------------------------------
 
 # Need to make a multitrait dissimilarity matrix between all species using gowdis
 func_dissims_matrix <- as.matrix(gowdis(full_trait_data[,2:12]), dimnames = list(full_trait_data$Species))
@@ -101,22 +129,22 @@ attributes(func_dissims_matrix) # All traits should be numeric
 class(func_dissims_matrix) <- "numeric"
 
 # See first 5 rows and cols of diss matrix
-func_dissims_matrix[504:509, 504:509]
+func_dissims_matrix[1:5, 1:5]
 
-# 5.  Save trait and dissims data -----------------------------------------------------
-
-# Put all trait data together and remove unnecessary columns
-full_trait_data <- left_join(trait_data_FM, troph_data, by="Species")
-full_trait_data <- full_trait_data %>% dplyr::select(-troph_cat)
-full_trait_data$troph_level <- as.numeric(full_trait_data$troph_level)
+# 8.  Save trait and dissims data -----------------------------------------
 
 # Create filename and write csv to inputs for later use
-filename_traits <- date.wrap("./inputs/trait_data", ".csv")
+filename_traits <- "./inputs/trait_data.csv"
 write.csv(full_trait_data, filename_traits)
 
 # Save func dissims matrix as csv to inputs for later use
-filename_dissims <- date.wrap("./inputs/func_dissims_matrix", ".csv")
+filename_dissims <- "./inputs/func_dissims_matrix.csv"
 write.csv(func_dissims_matrix, filename_dissims)
 
-# Cleanup
-rm(filename_dissims, filename_traits)
+# 9.  Clean up ------------------------------------------------------------
+
+rm(fishmorph_data, species_list, full_trait_data, func_dissims_matrix, 
+   troph_data_diet, troph_data_food, survey_data, trait_data_FM, 
+   traitlist_FM, troph_Est_data, trophic_data_FB, missing_troph_sp, 
+   missing_troph_sp2, colin.model, prop_table, NA_trait_species, 
+   filename_dissims, filename_traits, troph_data)

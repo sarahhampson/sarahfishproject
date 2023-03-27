@@ -1,0 +1,26 @@
+{
+    "id": "69611C82",
+    "path": "~/Documents/GitHub/sarahfishproject/main scripts/1_nov_detection_setup.R",
+    "project_path": "main scripts/1_nov_detection_setup.R",
+    "type": "r_source",
+    "hash": "2638861870",
+    "contents": "",
+    "dirty": false,
+    "created": 1679638571994.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "17,0",
+        "scrollLine": "12"
+    },
+    "folds": "4|55|49|0|\n20|35|22|0|\n25|29|33|6|\n50|28|55|0|\n56|26|67|0|\n68|30|90|0|\n91|43|115|0|\n116|42|120|0|\n121|14|126|0|\n",
+    "lastKnownWriteTime": 1679877010,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1679877010276,
+    "read_only": false,
+    "read_only_alternatives": []
+}
