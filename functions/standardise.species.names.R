@@ -4,8 +4,9 @@
 standardise.species.names <- function(database){ # Give database with a species column
   
   # Verification variables
-  #database <- fishmorph_data
-  #database <- survey_data
+  #database <- read.csv("inputs/raw_data/FISHMORPH_Database.csv", sep = ";")
+  #database <- database %>% dplyr::rename("Species" = "Genus.species")
+  #database <- read.csv("inputs/raw_data/1873_2_RivFishTIME_SurveyTable.csv")
   
   # Required packages
   require(rfishbase)
@@ -32,13 +33,15 @@ standardise.species.names <- function(database){ # Give database with a species 
       #}
   #}
     
+  # Remove weird case where valid_name is "Genus Species"
+  synonymslist <- synonymslist %>% filter(valid_name != "Genus Species")
+  
   # Create df for the synonyms list which summarises counts for each comment category
   synonymslist.wide <- synonymslist %>% 
     dplyr::select(-valid_name) %>% 
     group_by(provided_name, Comment) %>%
     dplyr::summarise(count = n()) %>% 
     tidyr::pivot_wider(names_from = Comment, values_from = count)
-
   
   # Create list of species to take synonyms for and then create a clean synonyms list
   if("provisionally accepted name" %in% colnames(synonymslist.wide)){
@@ -49,13 +52,13 @@ standardise.species.names <- function(database){ # Give database with a species 
       dplyr::select(provided_name)
     synonymslist.clean <- synonymslist %>% 
       dplyr::filter((provided_name == valid_name & Comment %in% c("accepted name", "provisionally accepted name"))|
-               (provided_name != valid_name & Comment %in% c("accepted name")) |
+               (provided_name != valid_name & Comment %in% c("accepted name"))|
                (provided_name %in% take_synonym_list$provided_name & Comment == "synonym")|
                (is.na(valid_name) & is.na(Comment)))
   }else{
     take_synonym_list <- synonymslist.wide %>% 
       dplyr::filter((is.na(`accepted name`)) & 
-               `ambiguous synonym` == 1) %>% 
+               synonym == 1) %>% 
       dplyr::select(provided_name)
     synonymslist.clean <- synonymslist %>% 
       dplyr::filter((provided_name == valid_name & Comment %in% c("accepted name"))|
@@ -63,19 +66,7 @@ standardise.species.names <- function(database){ # Give database with a species 
                (provided_name %in% take_synonym_list$provided_name & Comment == "synonym")|
                (is.na(valid_name) & is.na(Comment)))
   }
-  # I assume the species are correctly identified
-  # Meaning if provided name = valid name then we keep species name as is (checking comment also)
-  synonymslist.clean <- synonymslist %>% 
-    dplyr::filter((provided_name == valid_name & Comment %in% c("accepted name", "provisionally accepted name"))|
-            (provided_name != valid_name & Comment %in% c("accepted name")) |
-            (provided_name %in% take_synonym_list$provided_name & Comment == "synonym")|
-            (is.na(valid_name) & is.na(Comment)))
-  
-  # Check which species are missing
-  #which(!(specieslist$Species %in% synonymslist.clean$provided_name))
-  #specieslist$Species[which(!(specieslist$Species %in% synonymslist.clean$provided_name))]
-  # 
-  
+
   # Note for fishmorph the database entries goes down by one species 
   # but this species doesn't occur in survey data
   

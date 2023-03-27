@@ -21,7 +21,7 @@ tax.novelty.detection <- function(matrix_list){
     TS_ID <- names(matrix_list[i])
   
     # Save plot to plots folder named according to TS ID
-    plot_filename <- paste0("./plots/Pilot Taxonomic Plots/", TS_ID, "_plot.pdf")
+    plot_filename <- paste0("./plots/Taxonomic Plots/", TS_ID, "_plot.pdf")
     pdf(plot_filename, width = 10, height = 5)
     
     # Apply framework using identify.novelty.gam function

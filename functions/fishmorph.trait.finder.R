@@ -1,7 +1,7 @@
 # A function which subset trait data from fishmorph based on a species list
 
 # Define function
-fishmorph_trait_finder <- function(traits, fishmorphdata, specieslist){
+fishmorph.trait.finder <- function(traits, fishmorphdata, specieslist){
   
   # Verification variables
   #fishmorphdata <- fishmorph_data

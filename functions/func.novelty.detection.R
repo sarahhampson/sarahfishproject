@@ -22,7 +22,7 @@ func.novelty.detection <- function(tax_A_matrix_list, diss_matrix_list){
     TS_mat <- tax_A_matrix_list[[i]]
     
     # Save plot to plots folder named according to TS ID
-    plot_filename <- paste0("./plots/Pilot Functional Plots/", TS_ID, "_plot.pdf")
+    plot_filename <- paste0("./plots/Functional Plots/", TS_ID, "_plot.pdf")
     pdf(plot_filename, width = 10, height = 5)
     
     # Apply framework using identify.novelty.gam function
