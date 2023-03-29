@@ -27,10 +27,6 @@ full_results_df %>%
   group_by(taxnovel_count) %>%
   summarize(site_count = n())
 
-
-
-
-
 # 2.  What country/biorealm did they occur in? ----------------------------
 
 # Countries
