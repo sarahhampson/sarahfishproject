@@ -64,14 +64,24 @@ func_results_df_site <- func_results_df %>% group_by(sqID) %>%
                    novel.TF = ifelse(sum(funcnovel=="TRUE")>0,1,0))
 
 # Site level df for co-occurrence models
+#cooccur_results_df_site <- full_results_df %>% 
+  #mutate(cooccur = ifelse(funcnovel=="TRUE" & taxnovel=="TRUE",1,0)) %>% 
+  #group_by(sqID) %>% 
+  #mutate(bincount = n(), ts_length = max(bins) - min(bins)+1, ts_fill=bincount/ts_length) %>% 
+  #ungroup() %>% group_by(Site, Country, HydroBasin) %>% 
+  #dplyr::summarise(total_bincount = sum(bincount), mean_ts_fill = mean(ts_fill),
+                  # cooccur.TF =ifelse(sum(cooccur)>0, 1, 0), # There are no sites where co occur>1
+                   #funcnov =ifelse(sum(funcnovel=="TRUE")>0, 1, 0))
 cooccur_results_df_site <- full_results_df %>% 
-  mutate(cooccur = ifelse(funcnovel=="TRUE" & taxnovel=="TRUE",1,0)) %>% 
+  mutate(cooccur.TF = ifelse(taxnovel==TRUE & funcnovel==TRUE, 1, 0)) %>% 
   group_by(sqID) %>% 
   mutate(bincount = n(), ts_length = max(bins) - min(bins)+1, ts_fill=bincount/ts_length) %>% 
   ungroup() %>% group_by(Site, Country, HydroBasin) %>% 
-  dplyr::summarise(total_bincount = sum(bincount), mean_ts_fill = mean(ts_fill),
-                   cooccur.TF =ifelse(sum(cooccur)>0, 1, 0), # There are no sites where co occur>1
-                   funcnov =ifelse(sum(funcnovel=="TRUE")>0, 1, 0))
+  dplyr::summarise(taxnovel=ifelse(sum(taxnovel=="TRUE")>0, TRUE, FALSE), 
+                   funcnovel=ifelse(sum(funcnovel=="TRUE")>0, TRUE, FALSE),
+                   cooccur=sum(cooccur.TF),
+                   total_bincount = sum(bincount), 
+                   mean_ts_fill = mean(ts_fill))
                    
 # Scale effects
 tax_results_df_site$mean_ts_fillS <- scale(as.numeric(tax_results_df_site$mean_ts_fill))[,1]
@@ -175,7 +185,7 @@ cooccur.glm.tp <- glmer(funcnovel ~ taxnovel + bin.lagS + logYr_posS
                         family=binomial)
 
 # Site level model of novelty cooccurrence using full results df
-cooccur.glm.site <- glmer(cooccur.TF ~ funcnov + bincountS + mean_ts_fillS
+cooccur.glm.site <- glmer(funcnovel ~ taxnovel + bincountS + mean_ts_fillS
                           + (1|Country/HydroBasin), 
                           data = cooccur_results_df_site,
                           family = binomial)
@@ -197,8 +207,36 @@ ranef(cooccur.glm.site)
 performance(cooccur.glm.tp)
 performance(cooccur.glm.site)
 
+# 7.  Test co-occurrence models -------------------------------------------
 
-# 7.  Save GLM tables -----------------------------------------------------
+# Create another model to test co-occurrence models
+# Models will be functional novelty as response with covariates
+
+# Create subset timepoint data for tax novelty == TRUE
+sub_tp_df <- subset(full_results_df, full_results_df$taxnovel==TRUE)
+
+# Create subset site data for tax novelty == TRUE
+sub_site_df <- subset(cooccur_results_df_site, cooccur_results_df_site$taxnovel==TRUE)
+
+# Create models for func novelty using subset tax novel data
+cooccur.model.tp.test <- glmer(funcnovel ~ 1 + bin.lagS + logYr_posS +
+                               (1|Site/Quarter) + (1|Country/HydroBasin),
+                             data = sub_tp_df, 
+                             family = binomial)
+cooccur.model.site.test <- glmer(funcnovel ~ 1 + bincountS + mean_ts_fillS +
+                               (1|Country/HydroBasin),
+                             data = sub_site_df, 
+                             family = binomial)
+
+# See summaries
+summary(cooccur.model.tp.test)
+summary(cooccur.model.site.test)
+
+# Create results df
+make.glm.df(cooccur.model.tp.test, "cooccurtest", "plot")
+make.glm.df(cooccur.model.site.test, "cooccurtest", "plot")
+
+# 8.  Save GLM tables -----------------------------------------------------
 
 # Time point level models
 tax_model_df_tp <- make.glm.df(tax.glm.tp, "Tax", "plot")
@@ -216,11 +254,12 @@ write.csv(tax_model_df_site, "./outputs/GLM/tax_glm_site.csv")
 write.csv(func_model_df_site, "./outputs/GLM/func_glm_site.csv")
 write.csv(cooccur_model_df_site, "./outputs/GLM/cooccur_glm_site.csv")
 
-# 8.  Cleanup ------------------------------------------------------------
+# 9.  Cleanup ------------------------------------------------------------
 
 rm(tax_results_df, func_results_df, full_results_df, tax_results_temp,
    func_results_temp, tax_results_df_site, func_results_df_site, tax.glm.tp,
    tax.glm.site, func.glm.tp, func.glm.site, cooccur_results_df_site,
    cooccur.glm.site, cooccur.glm.tp, full_results_temp, tax_model_df_tp,
    func_model_df_tp, cooccur_model_df_tp, tax_model_df_site, func_model_df_site,
-   cooccur_model_df_site)
+   cooccur_model_df_site, cooccur.model.site.test, cooccur.model.tp.test,
+   sub_site_df, sub_tp_df)

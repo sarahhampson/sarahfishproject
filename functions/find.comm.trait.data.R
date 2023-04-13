@@ -47,9 +47,9 @@ find.comm.trait.data <- function(comm, taxonomic_matrix_list, trait_data, trait)
       # Merge with size data
       temp2_df <- merge(temp2_df, trait_data, by="Species")
       
-      # Add trait weighted abundance column and log transform
+      # Add trait weighted abundance column
       temp2_df <- temp2_df %>% 
-        mutate(tWAbund = Abundance*log(as.numeric(trait))) # actually community weighted means
+        mutate(tWAbund = Abundance*(as.numeric(trait))) # actually community weighted means
       
       # Summarise mean trait and variance for each year
       temp_df_sum <- temp2_df %>% group_by(Year) %>% 
@@ -77,7 +77,6 @@ find.comm.trait.data <- function(comm, taxonomic_matrix_list, trait_data, trait)
       output_df[1,8] <- as.numeric(abs(temp_df_sum$meantrait[2] - temp_df_sum$meantrait[1]))
       output_df[1,9] <- as.numeric(abs(temp_df_sum$sdtrait[2] - temp_df_sum$sdtrait[1]))
       
-      
       # Make a list element
       output_list <- list(output_df)
       
@@ -102,7 +101,7 @@ find.commS.trait.data <- function(comms, taxonomic_matrix_list, trait_data, trai
     output <- find.comm.trait.data(comms[i,], 
                                    taxonomic_matrix_list,
                                    trait_data, trait)
-    print(output)
+    #print(output)
     comm_trait_data <- append(comm_trait_data, output)
     
   }

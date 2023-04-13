@@ -102,21 +102,31 @@ NA_trait_species <- full_trait_data %>%
 install.packages("car")
 library(car)
 # Trial all versions of this where each trait is the response
-colin.model <- lm(CPt ~ MBl + BEl + VEp + REs + OGp + RMl + BLs + PFv + PFs + troph_level, data=full_trait_data)
-vif(colin.model)
-summary(colin.model)
-plot(colin.model)
+traits <- full_trait_data %>% dplyr::select(-X, -Species)
+# Create correlation matrix and save it
+cor_mat <- cor(traits, use="pairwise.complete.obs")
+write.csv(cor_mat, "./archive/trait_correlation_matrix.csv")
+# Create vif values and save it
+vif_values <- apply(traits, 2, function(x) vif(lm(x ~ ., data = traits)))
+write.csv(vif_values, "./archive/vif_trait_values.csv")
 
-# Summarise data by proportion of species covered for all traits
-
-# Define a function to calculate proportion of NA values
-prop_table <- sapply(full_trait_data[2:ncol(full_trait_data)], function(x) {
+# Define a function to calculate proportion of NA values for traits
+trait_na_table <- sapply(full_trait_data[2:ncol(full_trait_data)], function(x) {
   prop.table(table(is.na(x)))
 })
-prop_table <- do.call("rbind", prop_table)
+trait_na_table <- do.call("rbind", trait_na_table)
+
+# Define a function to calculate proportion of NA values for species row
+sp_na_table <- full_trait_data %>% select(Species)
+sp_na_table$na_count <- apply(full_trait_data, 1, function(x) {
+  sum(is.na(x))
+})
 
 # Print the table
-prop_table
+trait_na_table
+sp_na_table %>% filter(na_count>1) %>% arrange(desc(na_count))
+
+# Define a function to calculate the proportion of NA 
 
 # 7.  Save trait data -----------------------------------------------------
 
@@ -129,5 +139,6 @@ write.csv(full_trait_data, filename_traits)
 rm(fishmorph_data, species_list, full_trait_data, func_dissims_matrix, 
    troph_data_diet, troph_data_food, survey_data, trait_data_FM, 
    traitlist_FM, troph_Est_data, trophic_data_FB, missing_troph_sp, 
-   missing_troph_sp2, colin.model, prop_table, NA_trait_species, 
-   filename_dissims, filename_traits, troph_data)
+   missing_troph_sp2, colin.model, NA_trait_species, traits, vif_values,
+   filename_dissims, filename_traits, troph_data, trait_na_table,
+   sp_na_table, cor_mat, vif_values)

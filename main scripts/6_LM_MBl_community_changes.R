@@ -62,8 +62,8 @@ comms_size_df[, 2:9] <- lapply(2:9, function(x){
 })
 
 # Merge with full results df
-full_results_df_size <- merge(full_results_df, comms_size_df,
-                              by.y=c("sqID", "YearofComm"),
+full_results_df_size <- merge(size_results_df,size_change_data, 
+                              by.y=c("sqID", "YearofNov"),
                               by.x=c("sqID", "bins"))
 
 # 4.  Save community size dataframe ---------------------------------------
@@ -74,8 +74,8 @@ write.csv(full_results_df_size, "./inputs/model_data/trait_models/MBl_df.csv")
 # 5.  Size changes ~ tax novelty models -----------------------------------
 
 # Model trait change as a function of whether community is taxnovel or not
-# Including same fixed/randomeffects as in other time point models
-tax.lm.size <- lm(traitchange ~ taxnovel + bin.lagS + logYr_posS, 
+# Including same fixed/random effects as in other time point models
+tax.lm.size <- lm(traitchange ~ taxnovel + bin.lagS + logYr_posS,
                   data = full_results_df_size)
 
 # I have to remove data which have absolute zero change
@@ -84,12 +84,12 @@ full_results_df_Absize <- full_results_df_size %>%
 # 0.0567 --> ~ 6% of datapoints had zero change in size
 # Model absolute trait change as a function of whether community is
 # tax novel or not
-tax.lm.Absize <- lm(log(Abtraitchange) ~ taxnovel + bin.lagS + logYr_posS, 
+tax.lm.Absize <- lm(log(Abtraitchange) ~ taxnovel + bin.lagS + logYr_posS,
                   data = full_results_df_Absize)
 
 # Model change in standard deviation of size as a function of whether
 # community is tax novel or not
-tax.lm.sdsize <- lm(sdchange ~ taxnovel + bin.lagS + logYr_posS, 
+tax.lm.sdsize <- lm(sdchange ~ taxnovel + bin.lagS + logYr_posS,
                     data = full_results_df_size)
 # See summary
 summary(tax.lm.size)
@@ -99,11 +99,11 @@ summary(tax.lm.sdsize)
 # 6.  Size changes ~ func novelty models ----------------------------------
 
 # Model trait change as a function of whether community is funcnovel or not
-func.lm.size <- lm(traitchange ~ funcnovel + bin.lagS + logYr_posS, 
+func.lm.size <- lm(traitchange ~ funcnovel + bin.lagS + logYr_posS,
                   data = full_results_df_size)
-func.lm.Absize <- lm(log(Abtraitchange) ~ funcnovel + bin.lagS + logYr_posS, 
+func.lm.Absize <- lm(log(Abtraitchange) ~ funcnovel + bin.lagS + logYr_posS,
                     data = full_results_df_Absize)
-func.lm.sdsize <- lm(sdchange ~ funcnovel + bin.lagS + logYr_posS, 
+func.lm.sdsize <- lm(sdchange ~ funcnovel + bin.lagS + logYr_posS,
                     data = full_results_df_size)
 # See summary
 summary(func.lm.size)

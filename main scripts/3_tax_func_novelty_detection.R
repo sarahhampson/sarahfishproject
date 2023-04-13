@@ -2,7 +2,7 @@
 # Author: Sarah Hampson
 
 
-# 0.  Read in necessary dataframes ----------------------------------------
+# 0.  Load in necessary dataframes ----------------------------------------
 
 survey_data <- read.csv("./inputs/data/survey_data.csv")
 ts_data <- read.csv("./inputs/data/ts_data.csv")

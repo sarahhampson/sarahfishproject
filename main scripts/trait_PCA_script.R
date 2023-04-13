@@ -1,0 +1,114 @@
+# Title: PCA for trait data
+# Author: Sarah Hampson
+
+# 0. Load necessary dataframes and packages -------------------------------
+
+survey_data <- read.csv("./inputs/data/survey_data.csv")
+ts_data <- read.csv("./inputs/data/ts_data.csv")
+trait_data <- read.csv("./inputs/data/trait_data.csv")
+full_results_df <- read.csv("./detection results/full_results_df.csv")
+
+# Create a list of relative abundance matrices using matrix maker function
+taxonomic_matrix_list <- seasonal.matrix.maker(survey_data, ts_data)
+
+# Subset continuous data and species data
+PCA_data <- trait_data %>% 
+  dplyr::select(-X, -Species)
+sp_data <- trait_data %>% 
+  dplyr::select(Species)
+
+# Package for handling PCA with missing data
+install.packages(c("missMDA", "FactoMineR"))
+library(missMDA)
+library(FactoMineR)
+
+# 1.  Normalise variable distributions ------------------------------------
+
+# Data need to have a normal distribution for use in PCA
+# Looking at all traits visually to inspect for normal distribution
+histogram(log(trait_data$MBl), breaks=50) # --> log transform
+histogram(log(trait_data$BEl), breaks=50) # --> log transform
+histogram(trait_data$VEp, breaks=50) # --> normal
+histogram(trait_data$REs, breaks=50) # --> normalish
+histogram(trait_data$OGp, breaks=50) # --> normalish with some low values
+histogram(log(trait_data$RMl), breaks=50) # --> log transform
+histogram(trait_data$BLs, breaks=50) # --> normal
+histogram(trait_data$PFv, breaks=50) # --> pretty normal
+histogram(trait_data$PFs, breaks=50) # --> normal
+histogram(trait_data$CPt, breaks=50) # --> normal with some low values
+histogram(trait_data$troph_level, breaks=50) # --> normalish
+
+# Need to transform MBl, BEl, and RMl in the PCA data
+PCA_data <- PCA_data %>% 
+  mutate(logMBl=ifelse(is.na(MBl), NA, ifelse(MBl==0, 0, log(MBl))), 
+         logBEl=ifelse(is.na(BEl), NA, ifelse(BEl==0, 0, log(BEl))), 
+         logRMl=ifelse(is.na(RMl), NA, ifelse(MBl==0, 0, log(BEl)))) %>% 
+  dplyr::select(-MBl, -BEl, -RMl)
+
+# 2.  Estimate number of principle components -----------------------------
+
+# Use estim_ncPCA function and scale all variables
+# Use gcv cross validation to impute NA
+trait_PC <- estim_ncpPCA(PCA_data, ncp.min=2, ncp.max=7, scale=TRUE, 
+                         method.cv="gcv", verbose=FALSE)
+
+# Plot these according to mean squares estimate prediction
+plot(trait_PC$criterion, xlab = "nb dim", ylab = "MSEP")
+
+# Create imputed dataset using iterative PCA algorithm and cbind
+impPCA_data_list <- imputePCA(PCA_data, ncp = trait_PC$ncp)
+impPCA_data <- cbind.data.frame(impPCA_data_list$completeObs, sp_data)
+
+# Check correlation between imputed variables
+cor(impPCA_data[,1:11])
+
+# 3.  Perform PCA ---------------------------------------------------------
+
+# PCA using imputed data
+PCA1 <- PCA(impPCA_data, quali.sup = 12, 
+               ncp = trait_PC$ncp, graph=FALSE)
+summary(PCA1)
+
+# PCA using original data
+PCA2 <- PCA(PCA_data, quali.sup=1, ncp=10)
+summary(PCA2)
+
+# See plots of variable loadings
+plot(PCA1, choix="var")
+plot(PCA2, choix="var")
+
+# 4.  Save imputed trait data ---------------------------------------------
+
+write.csv(impPCA_data, "./outputs/imputed_PCA_data.csv") # Note this is not scaled
+
+# 5.  Compute community weighted mean trait values ------------------------
+
+comms <- full_results_df %>% 
+  mutate(bins.before = as.numeric(bins)-as.numeric(bin.lag)) %>% 
+  dplyr::select(sqID, bins, bins.before)
+
+# Use this function to extract the abundance weighted community mean trait for all 11 traits
+comms_logMBl_list <- find.commS.trait.data(comms, taxonomic_matrix_list, impPCA_data, "logMBl")
+comms_logBEl_list <- find.commS.trait.data(comms, taxonomic_matrix_list, impPCA_data, "logBEl")
+comms_logRMl_list <- find.commS.trait.data(comms, taxonomic_matrix_list, impPCA_data, "logRMl")
+comms_VEp_list <- find.commS.trait.data(comms, taxonomic_matrix_list, impPCA_data, "VEp")
+comms_REs_list <- find.commS.trait.data(comms, taxonomic_matrix_list, impPCA_data, "REs")
+comms_OGp_list <- find.commS.trait.data(comms, taxonomic_matrix_list, impPCA_data, "OGp")
+comms_BLs_list <- find.commS.trait.data(comms, taxonomic_matrix_list, impPCA_data, "BLs")
+comms_PFv_list <- find.commS.trait.data(comms, taxonomic_matrix_list, impPCA_data, "PFv")
+comms_PFs_list <- find.commS.trait.data(comms, taxonomic_matrix_list, impPCA_data, "PFs")
+comms_CPt_list <- find.commS.trait.data(comms, taxonomic_matrix_list, impPCA_data, "CPt")
+comms_troph_list <- find.commS.trait.data(comms, taxonomic_matrix_list, impPCA_data, "troph_level")
+
+# 10.  Cleanup ------------------------------------------------------------
+
+rm(full_results_df, taxonomic_matrix_list, comms, trait_data, survey_data,
+   ts_data, PCA_data, sp_data, trait_PC, impPCA_data_list, impPCA_data,
+   PCA1, PCA2, comms_logBEl_list, comms_logMBl_list, comms_logRMl_list,
+   comms_VEp_list, comms_OGp_list, comms_REs_list, 
+
+
+
+
+
+
