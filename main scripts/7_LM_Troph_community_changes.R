@@ -9,7 +9,7 @@
 #tax_results_df <- read.csv("./detection results/tax_results_df.csv")
 #func_results_df <- read.csv("./detection results/func_results_df.csv")
 full_results_df <- read.csv("./detection results/full_results_df.csv")
-trait_data <- read.csv("./inputs/data/trait_data.csv")
+trophic_level_data <- read.csv("./inputs/data/trait_data.csv")
 
 # Need taxonomic matrix list, if not already in environment run this
 survey_data <- read.csv("./inputs/data/survey_data.csv")
@@ -32,7 +32,7 @@ comms <- full_results_df %>%
   dplyr::select(sqID, bins, bins.before)
 
 # Abundance weighted community mean trait
-comms_troph_data_list <- find.commS.trait.data(comms, taxonomic_matrix_list, trait_data, "all")
+comms_troph_data_list <- find.commS.trait.data(comms, taxonomic_matrix_list, troph_data, "troph_level")
 
 # 2.  Merge with detection results ----------------------------------------
 
@@ -71,7 +71,7 @@ full_results_df_troph$bin.lagS <- scale(full_results_df_troph$bin.lag)[,1]
 full_results_df_troph$Yrs_passedS <- scale(full_results_df_troph$Yrs_passed)[,1]
 full_results_df_troph$logYr_posS <- scale(log(full_results_df_troph$Yr_pos))[,1]
 
-# 5.  Troph changes ~ tax novelty models -----------------------------------
+# 5.  Troph changes ~ tax novelty models  -----------------------------------
 
 # Model trait change as a function of whether community is taxnovel or not
 # Including same fixed/randomeffects as in other time point models
@@ -96,19 +96,19 @@ summary(tax.lm.troph)
 summary(tax.lm.Abtroph)
 summary(tax.lm.sdtroph)
 
-# 6.  Troph changes ~ func novelty models ----------------------------------
+# 6.  Troph changes ~ troph novelty models ----------------------------------
 
 # Model trait change as a function of whether community is funcnovel or not
-func.lm.troph <- lm(traitchange ~ funcnovel + bin.lagS + logYr_posS, 
+troph.lm.troph <- lm(traitchange ~ trophnovel + bin.lagS + logYr_posS, 
                    data = full_results_df_troph)
-func.lm.Abtroph <- lm(log(Abtraitchange) ~ funcnovel + bin.lagS + logYr_posS, 
+troph.lm.Abtroph <- lm(log(Abtraitchange) ~ trophnovel + bin.lagS + logYr_posS, 
                      data = full_results_df_Abtroph)
-func.lm.sdtroph <- lm(sdchange ~ funcnovel + bin.lagS + logYr_posS, 
+troph.lm.sdtroph <- lm(sdchange ~ trophnovel + bin.lagS + logYr_posS, 
                      data = full_results_df_troph)
 # See summary
-summary(func.lm.troph)
-summary(func.lm.Abtroph)
-summary(func.lm.sdtroph)
+summary(troph.lm.troph)
+summary(troph.lm.Abtroph)
+summary(troph.lm.sdtroph)
 
 # 7.  Create and save plot dataframes -------------------------------------
 
@@ -116,17 +116,17 @@ summary(func.lm.sdtroph)
 tax_troph_plot_df <- make.lm.plot.df(tax.lm.troph)
 tax_Abtroph_plot_df <- make.lm.plot.df(tax.lm.Abtroph, log=T)
 tax_sdtroph_plot_df <- make.lm.plot.df(tax.lm.sdtroph)
-func_troph_plot_df <- make.lm.plot.df(func.lm.troph)
-func_Abtroph_plot_df <- make.lm.plot.df(func.lm.Abtroph, log=T)
-func_sdtroph_plot_df <- make.lm.plot.df(func.lm.sdtroph)
+troph_troph_plot_df <- make.lm.plot.df(troph.lm.troph)
+troph_Abtroph_plot_df <- make.lm.plot.df(troph.lm.Abtroph, log=T)
+troph_sdtroph_plot_df <- make.lm.plot.df(troph.lm.sdtroph)
 
 # Save the dataframes
 write.csv(tax_troph_plot_df, "./outputs/troph/tax_lm_troph.csv")
 write.csv(tax_Abtroph_plot_df, "./outputs/troph/tax_lm_Abtroph.csv")
 write.csv(tax_sdtroph_plot_df, "./outputs/troph/tax_lm_sdtroph.csv")
-write.csv(func_troph_plot_df, "./outputs/troph/func_lm_troph.csv")
-write.csv(func_Abtroph_plot_df, "./outputs/troph/func_lm_Abtroph.csv")
-write.csv(func_sdtroph_plot_df, "./outputs/troph/func_lm_sdtroph.csv")
+write.csv(troph_troph_plot_df, "./outputs/troph/troph_lm_troph.csv")
+write.csv(troph_Abtroph_plot_df, "./outputs/troph/troph_lm_Abtroph.csv")
+write.csv(troph_sdtroph_plot_df, "./outputs/troph/troph_lm_sdtroph.csv")
 
 # 8.  Cleanup ------------------------------------------------------------
 

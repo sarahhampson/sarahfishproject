@@ -142,7 +142,7 @@ library(performance)
 performance(tax.glm.tp)
 performance(tax.glm.site)
 
-# 5.  Functional novelty occurrence models ---------------------------------
+# 5.  Multi-trait novelty occurrence models ---------------------------------
 
 # Model of probability of func novelty emergence across all time points (tp)
 # Fixed effects are bin lag and ln bin position (scaled)

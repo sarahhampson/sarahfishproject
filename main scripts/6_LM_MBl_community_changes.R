@@ -80,6 +80,7 @@ tax.lm.size <- lm(traitchange ~ taxnovel + bin.lagS + logYr_posS,
 
 # I have to remove data which have absolute zero change
 full_results_df_Absize <- full_results_df_size %>% 
+  dplyr::select(bin.lagS, logYr_posS, taxnovel, funcnovel, Abtraitchange) %>% 
   filter(Abtraitchange>0)
 # 0.0567 --> ~ 6% of datapoints had zero change in size
 # Model absolute trait change as a function of whether community is
