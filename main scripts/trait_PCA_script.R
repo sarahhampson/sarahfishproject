@@ -1,7 +1,7 @@
 # Title: PCA for trait data
 # Author: Sarah Hampson
 
-# 0. Load necessary dataframes and packages -------------------------------
+# 0.  Load necessary dataframes and packages -------------------------------
 
 survey_data <- read.csv("./inputs/data/survey_data.csv")
 ts_data <- read.csv("./inputs/data/ts_data.csv")
@@ -22,7 +22,9 @@ install.packages(c("missMDA", "FactoMineR"))
 library(missMDA)
 library(FactoMineR)
 
-# 1.  Normalise variable distributions ------------------------------------
+# 1.  OLD Normalise variable distributions ------------------------------------
+
+# Because I am doing a non-parametric PCA I don't need to do transformations
 
 # Data need to have a normal distribution for use in PCA
 # Looking at all traits visually to inspect for normal distribution
@@ -38,18 +40,17 @@ histogram(trait_data$PFs, breaks=50) # --> normal
 histogram(trait_data$CPt, breaks=50) # --> normal with some low values
 histogram(trait_data$troph_level, breaks=50) # --> normalish
 
-# Need to transform MBl, BEl, and RMl in the PCA data
-PCA_data <- PCA_data %>% 
-  mutate(logMBl=ifelse(is.na(MBl), NA, ifelse(MBl==0, 0, log(MBl))), 
-         logBEl=ifelse(is.na(BEl), NA, ifelse(BEl==0, 0, log(BEl))), 
-         logRMl=ifelse(is.na(RMl), NA, ifelse(MBl==0, 0, log(BEl)))) %>% 
-  dplyr::select(-MBl, -BEl, -RMl)
+#PCA_data <- PCA_data %>% 
+ # mutate(logMBl=ifelse(is.na(MBl), NA, ifelse(MBl==0, 0, log(MBl))), 
+     #    logBEl=ifelse(is.na(BEl), NA, ifelse(BEl==0, 0, log(BEl))), 
+     #    logRMl=ifelse(is.na(RMl), NA, ifelse(MBl==0, 0, log(BEl)))) %>% 
+ # dplyr::select(-MBl, -BEl, -RMl)
 
 # 2.  Estimate number of principle components -----------------------------
 
 # Use estim_ncPCA function and scale all variables
 # Use gcv cross validation to impute NA
-trait_PC <- estim_ncpPCA(PCA_data, ncp.min=2, ncp.max=7, scale=TRUE, 
+trait_PC <- estim_ncpPCA(PCA_data, ncp.min=5, ncp.max=7, scale=TRUE, 
                          method.cv="gcv", verbose=FALSE)
 
 # Plot these according to mean squares estimate prediction
@@ -57,29 +58,39 @@ plot(trait_PC$criterion, xlab = "nb dim", ylab = "MSEP")
 
 # Create imputed dataset using iterative PCA algorithm and cbind
 impPCA_data_list <- imputePCA(PCA_data, ncp = trait_PC$ncp)
-impPCA_data <- cbind.data.frame(impPCA_data_list$completeObs, sp_data)
+impPCA_data <- cbind.data.frame(sp_data, impPCA_data_list$completeObs)
 
 # Check correlation between imputed variables
-cor(impPCA_data[,1:11])
+cor(impPCA_data[,2:12])
 
 # 3.  Perform PCA ---------------------------------------------------------
 
+# Log transform variables 
+PCA_df <- impPCA_data %>% 
+  mutate(logMBl=ifelse(is.na(MBl), NA, ifelse(MBl==0, 0, log(MBl))), 
+         logBEl=ifelse(is.na(BEl), NA, ifelse(BEl==0, 0, log(BEl))), 
+         logRMl=ifelse(is.na(RMl), NA, ifelse(MBl==0, 0, log(BEl)))) %>% 
+  dplyr::select(-MBl, -BEl, -RMl)
+
 # PCA using imputed data
-PCA1 <- PCA(impPCA_data, quali.sup = 12, 
-               ncp = trait_PC$ncp, graph=FALSE)
+PCA1 <- PCA(PCA_df, quali.sup=1, ncp=10, graph=T, axes=c(2,1))
 summary(PCA1)
 
 # PCA using original data
-PCA2 <- PCA(PCA_data, quali.sup=1, ncp=10)
+PCA2 <- PCA(PCA_df, scale.unit=T, quali.sup=1, ncp=10, graph=T, axes=c(1,2))
 summary(PCA2)
 
 # See plots of variable loadings
-plot(PCA1, choix="var")
+plot(PCA1, choix="ind")
 plot(PCA2, choix="var")
 
-# 4.  Save imputed trait data ---------------------------------------------
+# Add PCA coordinates onto trait df
+trait_and_PCA_data <- cbind(impPCA_data, PCA1$ind$coord[,1:2])
+
+# 4.  Save data ---------------------------------------------
 
 write.csv(impPCA_data, "./outputs/imputed_PCA_data.csv") # Note this is not scaled
+write.csv(trait_and_PCA_data, "./inputs/data/trait_and_PCA_data.csv")
 
 # 5.  Compute community weighted mean trait values ------------------------
 
@@ -100,7 +111,7 @@ comms_PFs_list <- find.commS.trait.data(comms, taxonomic_matrix_list, impPCA_dat
 comms_CPt_list <- find.commS.trait.data(comms, taxonomic_matrix_list, impPCA_data, "CPt")
 comms_troph_list <- find.commS.trait.data(comms, taxonomic_matrix_list, impPCA_data, "troph_level")
 
-# 10.  Cleanup ------------------------------------------------------------
+# 6.  Cleanup ------------------------------------------------------------
 
 rm(full_results_df, taxonomic_matrix_list, comms, trait_data, survey_data,
    ts_data, PCA_data, sp_data, trait_PC, impPCA_data_list, impPCA_data,

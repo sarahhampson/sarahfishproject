@@ -111,22 +111,22 @@ vif_values <- apply(traits, 2, function(x) vif(lm(x ~ ., data = traits)))
 write.csv(vif_values, "./archive/vif_trait_values.csv")
 
 # Define a function to calculate proportion of NA values for traits
-trait_na_table <- sapply(full_trait_data[2:ncol(full_trait_data)], function(x) {
+trait_na_table <- sapply(trait_data[2:ncol(trait_data)], function(x) {
   prop.table(table(is.na(x)))
 })
 trait_na_table <- do.call("rbind", trait_na_table)
 
 # Define a function to calculate proportion of NA values for species row
-sp_na_table <- full_trait_data %>% select(Species)
-sp_na_table$na_count <- apply(full_trait_data, 1, function(x) {
+sp_na_table <- trait_data %>% dplyr::select(Species)
+sp_na_table$na_count <- apply(trait_data, 1, function(x) {
   sum(is.na(x))
 })
 
 # Print the table
-trait_na_table
+print(trait_na_table)
 sp_na_table %>% filter(na_count>1) %>% arrange(desc(na_count))
 
-# Define a function to calculate the proportion of NA 
+rm(trait_na_table, sp_na_table)
 
 # 7.  Save trait data -----------------------------------------------------
 

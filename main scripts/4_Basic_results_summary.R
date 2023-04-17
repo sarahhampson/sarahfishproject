@@ -23,8 +23,8 @@ full_results_df %>%
 full_results_df %>%
   filter(funcnovel) %>%
   group_by(Site) %>%
-  summarize(taxnovel_count = n()) %>%
-  group_by(taxnovel_count) %>%
+  summarize(funcnovel_count = n()) %>%
+  group_by(funcnovel_count) %>%
   summarize(site_count = n())
 
 # 2.  What country/biorealm did they occur in? ----------------------------
