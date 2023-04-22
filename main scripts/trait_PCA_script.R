@@ -13,7 +13,7 @@ taxonomic_matrix_list <- seasonal.matrix.maker(survey_data, ts_data)
 
 # Subset continuous data and species data
 PCA_data <- trait_data %>% 
-  dplyr::select(-X, -Species)
+  dplyr::select(-X, -Species, -troph_level)
 sp_data <- trait_data %>% 
   dplyr::select(Species)
 
@@ -73,16 +73,12 @@ PCA_df <- impPCA_data %>%
   dplyr::select(-MBl, -BEl, -RMl)
 
 # PCA using imputed data
-PCA1 <- PCA(PCA_df, quali.sup=1, ncp=10, graph=T, axes=c(2,1))
+PCA1 <- PCA(PCA_df, quali.sup=1, ncp=10, graph=T, axes=c(1,2))
 summary(PCA1)
-
-# PCA using original data
-PCA2 <- PCA(PCA_df, scale.unit=T, quali.sup=1, ncp=10, graph=T, axes=c(1,2))
-summary(PCA2)
 
 # See plots of variable loadings
 plot(PCA1, choix="ind")
-plot(PCA2, choix="var")
+plot(PCA1, choix="var")
 
 # Add PCA coordinates onto trait df
 trait_and_PCA_data <- cbind(impPCA_data, PCA1$ind$coord[,1:2])

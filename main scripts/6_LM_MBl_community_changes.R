@@ -62,7 +62,7 @@ comms_size_df[, 2:9] <- lapply(2:9, function(x){
 })
 
 # Merge with full results df
-full_results_df_size <- merge(size_results_df,size_change_data, 
+full_results_df_size <- merge(size_results_df,comms_size_df, 
                               by.y=c("sqID", "YearofNov"),
                               by.x=c("sqID", "bins"))
 
@@ -76,10 +76,10 @@ write.csv(full_results_df_size, "./inputs/model_data/trait_models/MBl_df.csv")
 # Model trait change as a function of whether community is taxnovel or not
 # Including same fixed/random effects as in other time point models
 tax.lm.size <- lm(traitchange ~ taxnovel + bin.lagS + logYr_posS,
-                  data = full_results_df_size)
+                  data = comms_size_df)
 
 # I have to remove data which have absolute zero change
-full_results_df_Absize <- full_results_df_size %>% 
+comms_size_df_Absize <- full_results_df_size %>% 
   dplyr::select(bin.lagS, logYr_posS, taxnovel, funcnovel, Abtraitchange) %>% 
   filter(Abtraitchange>0)
 # 0.0567 --> ~ 6% of datapoints had zero change in size

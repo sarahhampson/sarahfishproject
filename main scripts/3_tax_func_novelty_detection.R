@@ -30,8 +30,9 @@ unlink("./plots/Taxonomic Plots/*")
 # 3.  Make func dissims matrix --------------------------------------------
 
 # Need to make a multitrait dissimilarity matrix between all species using gowdis
-func_dissims_matrix <- as.matrix(gowdis(trait_data[,2:12]), 
-                                 dimnames = list(full_trait_data$Species))
+# Only use morphological traits
+func_dissims_matrix <- as.matrix(gowdis(trait_data[,3:12]), 
+                                 dimnames = list(trait_data$Species))
 dimnames(func_dissims_matrix) <- list(trait_data$Species, trait_data$Species)
 attributes(func_dissims_matrix) # All traits should be numeric
 
@@ -111,7 +112,7 @@ tax_results_df <- tax_results_df %>%
 # 7.  Save results dataframes ---------------------------------------------
 
 write.csv(tax_results_df, "./detection results/tax_results_df.csv")
-write.csv(func_results_df, "./detection results/func_results_df.csv")
+write.csv(func_results_df, "./detection results/func10_results_df.csv")
 write.csv(full_results_df, "./detection results/full_results_df.csv")
 
 # 8.  Cleanup -------------------------------------------------------------

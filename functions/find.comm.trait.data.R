@@ -101,7 +101,7 @@ find.commS.trait.data <- function(comms, taxonomic_matrix_list, trait_data, trai
     output <- find.comm.trait.data(comms[i,], 
                                    taxonomic_matrix_list,
                                    trait_data, trait)
-    #print(output)
+    print(output)
     comm_trait_data <- append(comm_trait_data, output)
     
   }

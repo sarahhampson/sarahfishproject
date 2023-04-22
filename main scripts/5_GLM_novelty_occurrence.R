@@ -6,7 +6,7 @@
 
 # Read results csvs
 tax_results_df <- read.csv("./detection results/tax_results_df.csv")
-func_results_df <- read.csv("./detection results/func_results_df.csv")
+func_results_df <- read.csv("./detection results/func10_results_df.csv")
 full_results_df <- read.csv("./detection results/full_results_df.csv")
 
 # 1.  Add and scale fixed effects -----------------------------------------
@@ -28,7 +28,7 @@ func_results_temp <- lapply(split(func_results_df, f=func_results_df$sqID),
                               return(x)
                             })
 func_results_df <- do.call("rbind", func_results_temp)
-full_results_temp <- lapply(split(full_results_df, f=full_results_df$sqID),
+full_results_temp <- lapply(split(multitrait_results_df, f=multitrait_results_df$sqID),
                             function(x){
                               x$TS_Length <- nrow(x)
                               x$Yrs_passed <- x$bins - min(x$bins)
@@ -52,26 +52,18 @@ full_results_df$logYr_posS <- scale(log(full_results_df$Yr_pos))[,1]
 
 # Create new df for number of sites
 # This includes adding mean time series fill and total bin count 
-tax_results_df_site <- tax_results_df %>% group_by(sqID) %>% 
+tax_results_df_site <- comms_size_df %>% group_by(sqID) %>% 
   mutate(bincount = n(), ts_length = max(bins) - min(bins)+1, ts_fill = bincount/ts_length) %>% 
-  ungroup() %>% group_by(Site, Country, HydroBasin) %>% 
+  ungroup() %>% group_by(Site=TimeSeriesID, Country, HydroBasin) %>% 
   dplyr::summarise(total_bincount = sum(bincount), mean_ts_fill = mean(ts_fill),
                    novel.TF = ifelse(sum(taxnovel=="TRUE")>0,1,0))
-func_results_df_site <- func_results_df %>% group_by(sqID) %>% 
+func_results_df_site <- full_results_df %>% group_by(sqID) %>% 
   mutate(bincount = n(), ts_length = max(bins) - min(bins)+1, ts_fill=bincount/ts_length) %>% 
   ungroup() %>% group_by(Site, Country, HydroBasin) %>% 
   dplyr::summarise(total_bincount = sum(bincount), mean_ts_fill = mean(ts_fill),
                    novel.TF = ifelse(sum(funcnovel=="TRUE")>0,1,0))
 
 # Site level df for co-occurrence models
-#cooccur_results_df_site <- full_results_df %>% 
-  #mutate(cooccur = ifelse(funcnovel=="TRUE" & taxnovel=="TRUE",1,0)) %>% 
-  #group_by(sqID) %>% 
-  #mutate(bincount = n(), ts_length = max(bins) - min(bins)+1, ts_fill=bincount/ts_length) %>% 
-  #ungroup() %>% group_by(Site, Country, HydroBasin) %>% 
-  #dplyr::summarise(total_bincount = sum(bincount), mean_ts_fill = mean(ts_fill),
-                  # cooccur.TF =ifelse(sum(cooccur)>0, 1, 0), # There are no sites where co occur>1
-                   #funcnov =ifelse(sum(funcnovel=="TRUE")>0, 1, 0))
 cooccur_results_df_site <- full_results_df %>% 
   mutate(cooccur.TF = ifelse(taxnovel==TRUE & funcnovel==TRUE, 1, 0)) %>% 
   group_by(sqID) %>% 
@@ -236,7 +228,12 @@ summary(cooccur.model.site.test)
 make.glm.df(cooccur.model.tp.test, "cooccurtest", "plot")
 make.glm.df(cooccur.model.site.test, "cooccurtest", "plot")
 
-# 8.  Save GLM tables -----------------------------------------------------
+# 8.  Make/Save GLM tables -----------------------------------------------------
+
+library(sjPlot)
+
+tab_model
+
 
 # Time point level models
 tax_model_df_tp <- make.glm.df(tax.glm.tp, "Tax", "plot")
